@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import html2pdf from "html2pdf.js";
 
 export default function ProjectsModule({ onSelectProjectForSimulation }) {
   const [proyectos, setProyectos] = useState([]);
@@ -55,6 +56,27 @@ export default function ProjectsModule({ onSelectProjectForSimulation }) {
     }
   };
 
+  const exportarFichaPDF = () => {
+    const element = document.getElementById("ficha-tecnica-pdf");
+    if (!element) return;
+
+    const opt = {
+      margin:       [6, 6, 6, 6],
+      filename:     `Caso_de_Negocio_${proyectoSeleccionado.resumenEjecutivo?.nombreProyecto || "TrueNorte"}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: "#0f172a",
+        windowWidth: 1050
+      },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    html2pdf().set(opt).from(element).save();
+  };
+
   const formatoMoneda = (val) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(val || 0);
 
   const listaN4Unicos = ["TODOS", ...Array.from(new Set(proyectos.map((p) => p.resumenEjecutivo?.indicadorN4).filter(Boolean)))];
@@ -75,7 +97,6 @@ export default function ProjectsModule({ onSelectProjectForSimulation }) {
     return coincideBusqueda && coincideN4;
   });
 
-  // Auxiliares para cálculo de Flujo de Caja dentro del Modal
   const obtenerFlujoCalculado = (p) => {
     const opex = p.flujoCaja?.opex || Array(12).fill(0);
     const retorno = p.flujoCaja?.retorno || Array(12).fill(0);
@@ -113,7 +134,7 @@ export default function ProjectsModule({ onSelectProjectForSimulation }) {
         </button>
       </div>
 
-      {/* Barra de Filtro y Búsqueda */}
+      {/* Barra de Búsqueda y Filtros */}
       <div style={{ display: "flex", gap: "15px", marginBottom: "20px", background: "#1e293b", padding: "15px", borderRadius: "8px", border: "1px solid #334155" }}>
         <input
           type="text"
@@ -135,7 +156,7 @@ export default function ProjectsModule({ onSelectProjectForSimulation }) {
         </select>
       </div>
 
-      {/* Tarjetas de Proyectos */}
+      {/* Tarjetas */}
       {loading ? (
         <p style={{ color: "#94a3b8", textAlign: "center", padding: "30px" }}>⏳ Cargando portafolio de proyectos...</p>
       ) : error ? (
@@ -215,7 +236,7 @@ export default function ProjectsModule({ onSelectProjectForSimulation }) {
         </div>
       )}
 
-      {/* MODAL FICHA TÉCNICA 360° COMPLETA Y REPLICADA IGUAL AL CASO DE NEGOCIO V4 ORIGINAL */}
+      {/* MODAL FICHA TÉCNICA 360° OPTIMIZADA PARA EXPORTACIÓN DE 12 MESES */}
       {proyectoSeleccionado && (() => {
         const flujo = obtenerFlujoCalculado(proyectoSeleccionado);
         const planTrabajo = proyectoSeleccionado.planTrabajo || [
@@ -237,289 +258,303 @@ export default function ProjectsModule({ onSelectProjectForSimulation }) {
                   </h2>
                   <small style={{ color: "#94a3b8" }}>Fecha de Registro: {proyectoSeleccionado.resumenEjecutivo?.fecha || "N/A"}</small>
                 </div>
-                <button onClick={() => setProyectoSeleccionado(null)} style={{ background: "none", border: "none", color: "#ef4444", fontSize: "1.8rem", cursor: "pointer", fontWeight: "bold" }}>✖</button>
-              </div>
-
-              {/* 1. ENTENDIMIENTO DEL PROBLEMA */}
-              <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "25px", overflow: "hidden" }}>
-                <div style={{ backgroundColor: "#15803d", color: "#fff", padding: "0.75rem", textAlign: "center", fontWeight: "bold", fontSize: "1.05rem" }}>
-                  Entendimiento del Problema
-                </div>
                 
-                <div style={{ padding: "15px", background: "#1e293b", display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", background: "#0f172a", border: "1px solid #334155", borderRadius: "6px" }}>
-                    <div style={{ padding: "10px", fontWeight: "bold", color: "#38bdf8", borderRight: "1px solid #334155" }}>Tipo de problema</div>
-                    <div style={{ padding: "10px", fontWeight: "bold" }}>{proyectoSeleccionado.problema?.tipoProblema || "N/A"}</div>
-                  </div>
-
-                  <div style={{ border: "1px solid #334155", borderRadius: "6px", overflow: "hidden" }}>
-                    <div style={{ background: "#166534", color: "#fff", padding: "6px 12px", fontWeight: "bold", fontSize: "0.85rem" }}>Contexto (Conexión con la estrategia)</div>
-                    <div style={{ padding: "12px", background: "#0f172a", color: "#cbd5e1", fontSize: "0.9rem", whiteSpace: "pre-wrap" }}>
-                      {proyectoSeleccionado.problema?.contexto || proyectoSeleccionado.resumenEjecutivo?.contexto || "No registrado."}
-                    </div>
-                  </div>
-
-                  <div style={{ border: "1px solid #334155", borderRadius: "6px", overflow: "hidden" }}>
-                    <div style={{ background: "#166534", color: "#fff", padding: "6px 12px", fontWeight: "bold", fontSize: "0.85rem" }}>Estado Actual</div>
-                    <div style={{ padding: "12px", background: "#0f172a", color: "#cbd5e1", fontSize: "0.9rem", whiteSpace: "pre-wrap" }}>
-                      {proyectoSeleccionado.problema?.estadoActual || proyectoSeleccionado.resumenEjecutivo?.estadoActual || "No registrado."}
-                    </div>
-                  </div>
-
-                  <div style={{ border: "1px solid #334155", borderRadius: "6px", overflow: "hidden" }}>
-                    <div style={{ background: "#166534", color: "#fff", padding: "6px 12px", fontWeight: "bold", fontSize: "0.85rem" }}>Análisis de Causas</div>
-                    <div style={{ padding: "12px", background: "#0f172a", color: "#cbd5e1", fontSize: "0.9rem", whiteSpace: "pre-wrap" }}>
-                      {proyectoSeleccionado.problema?.analisisCausas || proyectoSeleccionado.resumenEjecutivo?.causas || "No registrado."}
-                    </div>
-                  </div>
-
-                  <div style={{ border: "1px solid #334155", borderRadius: "6px", overflow: "hidden" }}>
-                    <div style={{ background: "#166534", color: "#fff", padding: "6px 12px", fontWeight: "bold", fontSize: "0.85rem" }}>Estado Deseado / Objetivo SMART</div>
-                    <div style={{ padding: "12px", background: "#0f172a", color: "#cbd5e1", fontSize: "0.9rem", whiteSpace: "pre-wrap" }}>
-                      {proyectoSeleccionado.problema?.estadoDeseado || proyectoSeleccionado.resumenEjecutivo?.estadoDeseado || "No registrado."}
-                    </div>
-                  </div>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <button
+                    onClick={exportarFichaPDF}
+                    style={{ padding: "8px 16px", background: "#15803d", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    📄 Exportar a PDF
+                  </button>
+                  <button onClick={() => setProyectoSeleccionado(null)} style={{ background: "none", border: "none", color: "#ef4444", fontSize: "1.8rem", cursor: "pointer", fontWeight: "bold" }}>✖</button>
                 </div>
               </div>
 
-              {/* 2. CASO DE NEGOCIO V4 - RESUMEN EJECUTIVO */}
-              <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "25px", overflow: "hidden" }}>
-                <div style={{ backgroundColor: "#15803d", color: "#fff", padding: "0.75rem", textAlign: "center", fontWeight: "bold", fontSize: "1.05rem" }}>
-                  Caso de Negocio V4
+              {/* CONTENEDOR CAPTURABLE POR HTML2PDF */}
+              <div id="ficha-tecnica-pdf" style={{ padding: "10px", background: "#0f172a" }}>
+
+                {/* 1. ENTENDIMIENTO DEL PROBLEMA */}
+                <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "20px", overflow: "hidden" }}>
+                  <div style={{ backgroundColor: "#15803d", color: "#fff", padding: "0.6rem", textAlign: "center", fontWeight: "bold", fontSize: "1rem" }}>
+                    Entendimiento del Problema
+                  </div>
+                  
+                  <div style={{ padding: "12px", background: "#1e293b", display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", background: "#0f172a", border: "1px solid #334155", borderRadius: "6px" }}>
+                      <div style={{ padding: "8px", fontWeight: "bold", color: "#38bdf8", borderRight: "1px solid #334155" }}>Tipo de problema</div>
+                      <div style={{ padding: "8px", fontWeight: "bold" }}>{proyectoSeleccionado.problema?.tipoProblema || "N/A"}</div>
+                    </div>
+
+                    <div style={{ border: "1px solid #334155", borderRadius: "6px", overflow: "hidden" }}>
+                      <div style={{ background: "#166534", color: "#fff", padding: "4px 10px", fontWeight: "bold", fontSize: "0.8rem" }}>Contexto (Conexión con la estrategia)</div>
+                      <div style={{ padding: "10px", background: "#0f172a", color: "#cbd5e1", fontSize: "0.85rem", whiteSpace: "pre-wrap" }}>
+                        {proyectoSeleccionado.problema?.contexto || proyectoSeleccionado.resumenEjecutivo?.contexto || "No registrado."}
+                      </div>
+                    </div>
+
+                    <div style={{ border: "1px solid #334155", borderRadius: "6px", overflow: "hidden" }}>
+                      <div style={{ background: "#166534", color: "#fff", padding: "4px 10px", fontWeight: "bold", fontSize: "0.8rem" }}>Estado Actual</div>
+                      <div style={{ padding: "10px", background: "#0f172a", color: "#cbd5e1", fontSize: "0.85rem", whiteSpace: "pre-wrap" }}>
+                        {proyectoSeleccionado.problema?.estadoActual || proyectoSeleccionado.resumenEjecutivo?.estadoActual || "No registrado."}
+                      </div>
+                    </div>
+
+                    <div style={{ border: "1px solid #334155", borderRadius: "6px", overflow: "hidden" }}>
+                      <div style={{ background: "#166534", color: "#fff", padding: "4px 10px", fontWeight: "bold", fontSize: "0.8rem" }}>Análisis de Causas</div>
+                      <div style={{ padding: "10px", background: "#0f172a", color: "#cbd5e1", fontSize: "0.85rem", whiteSpace: "pre-wrap" }}>
+                        {proyectoSeleccionado.problema?.analisisCausas || proyectoSeleccionado.resumenEjecutivo?.causas || "No registrado."}
+                      </div>
+                    </div>
+
+                    <div style={{ border: "1px solid #334155", borderRadius: "6px", overflow: "hidden" }}>
+                      <div style={{ background: "#166534", color: "#fff", padding: "4px 10px", fontWeight: "bold", fontSize: "0.8rem" }}>Estado Deseado / Objetivo SMART</div>
+                      <div style={{ padding: "10px", background: "#0f172a", color: "#cbd5e1", fontSize: "0.85rem", whiteSpace: "pre-wrap" }}>
+                        {proyectoSeleccionado.problema?.estadoDeseado || proyectoSeleccionado.resumenEjecutivo?.estadoDeseado || "No registrado."}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div style={{ padding: "15px", background: "#1e293b", display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #334155", fontSize: "0.9rem" }}>
-                    <tbody>
-                      <tr style={{ borderBottom: "1px solid #334155" }}>
-                        <td style={{ width: "200px", padding: "10px", fontWeight: "bold", background: "#0f172a", color: "#38bdf8" }}>Nombre del Proyecto:</td>
-                        <td style={{ padding: "10px", fontWeight: "bold" }}>{proyectoSeleccionado.resumenEjecutivo?.nombreProyecto || "N/A"}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: "10px", fontWeight: "bold", background: "#0f172a", color: "#38bdf8" }}>Procesos Impactados:</td>
-                        <td style={{ padding: "10px" }}>{proyectoSeleccionado.resumenEjecutivo?.procesosImpactados || "N/A"}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                {/* 2. CASO DE NEGOCIO V4 - RESUMEN EJECUTIVO */}
+                <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "20px", overflow: "hidden" }}>
+                  <div style={{ backgroundColor: "#15803d", color: "#fff", padding: "0.6rem", textAlign: "center", fontWeight: "bold", fontSize: "1rem" }}>
+                    Caso de Negocio V4
+                  </div>
 
-                  <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #334155", fontSize: "0.85rem" }}>
-                    <thead>
-                      <tr style={{ background: "#166534", color: "#fff" }}>
-                        <th colSpan="2" style={{ padding: "8px", textAlign: "center" }}>Resumen Ejecutivo</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr style={{ borderBottom: "1px solid #334155" }}>
-                        <td style={{ width: "200px", padding: "10px", background: "#0f172a", fontWeight: "bold" }}>Conexión con la Estrategia</td>
-                        <td style={{ padding: "10px" }}>
-                          <div><strong>Indicador N4:</strong> {proyectoSeleccionado.resumenEjecutivo?.indicadorN4 || "N/A"}</div>
-                          <div style={{ marginTop: "4px" }}><strong>Indicador N3:</strong> {proyectoSeleccionado.resumenEjecutivo?.indicadorN3 || "N/A"}</div>
-                          <div style={{ marginTop: "4px" }}><strong>Causas:</strong> {proyectoSeleccionado.resumenEjecutivo?.causas || "N/A"}</div>
-                        </td>
-                      </tr>
-                      <tr style={{ borderBottom: "1px solid #334155" }}>
-                        <td style={{ padding: "10px", background: "#0f172a", fontWeight: "bold" }}>Necesidad de Mejora</td>
-                        <td style={{ padding: "10px" }}>
-                          <div><strong>Estado Actual:</strong> {proyectoSeleccionado.resumenEjecutivo?.estadoActual || "N/A"}</div>
-                          <div style={{ marginTop: "4px" }}><strong>Estado Deseado:</strong> {proyectoSeleccionado.resumenEjecutivo?.estadoDeseado || "N/A"}</div>
-                          <div style={{ marginTop: "4px" }}><strong>Brecha (GAP):</strong> {proyectoSeleccionado.resumenEjecutivo?.brechaGap || "N/A"} | <strong>Sentido Óptimo:</strong> {proyectoSeleccionado.resumenEjecutivo?.sentidoOptimo || "Ascendente"}</div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: "10px", background: "#0f172a", fontWeight: "bold" }}>Alcance</td>
-                        <td style={{ padding: "10px" }}>{proyectoSeleccionado.resumenEjecutivo?.alcance || "N/A"}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                  <div style={{ padding: "12px", background: "#1e293b", display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #334155", fontSize: "0.85rem" }}>
+                      <tbody>
+                        <tr style={{ borderBottom: "1px solid #334155" }}>
+                          <td style={{ width: "180px", padding: "8px", fontWeight: "bold", background: "#0f172a", color: "#38bdf8" }}>Nombre del Proyecto:</td>
+                          <td style={{ padding: "8px", fontWeight: "bold" }}>{proyectoSeleccionado.resumenEjecutivo?.nombreProyecto || "N/A"}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "8px", fontWeight: "bold", background: "#0f172a", color: "#38bdf8" }}>Procesos Impactados:</td>
+                          <td style={{ padding: "8px" }}>{proyectoSeleccionado.resumenEjecutivo?.procesosImpactados || "N/A"}</td>
+                        </tr>
+                      </tbody>
+                    </table>
 
-              {/* 3. CÉLULA DE TRABAJO */}
-              <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "25px", overflow: "hidden" }}>
-                <div style={{ background: "#166534", color: "#fff", padding: "8px 12px", fontWeight: "bold", textAlign: "center" }}>
-                  Célula de Trabajo
-                </div>
-                <div style={{ padding: "15px", background: "#1e293b" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
-                    <tbody>
-                      <tr style={{ borderBottom: "1px solid #334155" }}>
-                        <td style={{ width: "180px", padding: "10px", fontWeight: "bold", color: "#fbbf24", background: "#0f172a" }}>Sponsor:</td>
-                        <td style={{ padding: "10px" }}>{proyectoSeleccionado.celula?.sponsor || "No asignado"}</td>
-                      </tr>
-                      <tr style={{ borderBottom: "1px solid #334155" }}>
-                        <td style={{ padding: "10px", fontWeight: "bold", color: "#38bdf8", background: "#0f172a" }}>Líder:</td>
-                        <td style={{ padding: "10px" }}>{proyectoSeleccionado.celula?.lider || "No asignado"}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: "10px", fontWeight: "bold", color: "#cbd5e1", background: "#0f172a" }}>Equipo:</td>
-                        <td style={{ padding: "10px" }}>{proyectoSeleccionado.celula?.equipo || "No asignado"}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* 4. PLAN DE TRABAJO - ALTO NIVEL (TABLA MES A MES M1 - M12) */}
-              <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "25px", overflow: "hidden" }}>
-                <div style={{ background: "#166534", color: "#fff", padding: "8px 12px", fontWeight: "bold", textAlign: "center" }}>
-                  Plan de Trabajo - Alto Nivel
-                </div>
-                <div style={{ padding: "15px", background: "#1e293b", overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem", textAlign: "center" }}>
-                    <thead>
-                      <tr style={{ background: "#0f172a", color: "#38bdf8", borderBottom: "2px solid #334155" }}>
-                        <th style={{ padding: "8px", textAlign: "left", width: "200px" }}>Etapa / Fase</th>
-                        {Array.from({ length: 12 }, (_, i) => (
-                          <th key={i} style={{ padding: "8px", width: "50px" }}>M{i + 1}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {planTrabajo.map((fase, fIdx) => (
-                        <tr key={fIdx} style={{ borderBottom: "1px solid #334155" }}>
-                          <td style={{ padding: "8px", textAlign: "left", fontWeight: "bold", background: "#0f172a", color: "#f8fafc" }}>
-                            {fase.nombre || fase.placeholder || `Fase ${fIdx + 1}`}
+                    <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #334155", fontSize: "0.82rem" }}>
+                      <thead>
+                        <tr style={{ background: "#166534", color: "#fff" }}>
+                          <th colSpan="2" style={{ padding: "6px", textAlign: "center" }}>Resumen Ejecutivo</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style={{ borderBottom: "1px solid #334155" }}>
+                          <td style={{ width: "180px", padding: "8px", background: "#0f172a", fontWeight: "bold" }}>Conexión con la Estrategia</td>
+                          <td style={{ padding: "8px" }}>
+                            <div><strong>Indicador N4:</strong> {proyectoSeleccionado.resumenEjecutivo?.indicadorN4 || "N/A"}</div>
+                            <div><strong>Indicador N3:</strong> {proyectoSeleccionado.resumenEjecutivo?.indicadorN3 || "N/A"}</div>
+                            <div><strong>Causas:</strong> {proyectoSeleccionado.resumenEjecutivo?.causas || "N/A"}</div>
                           </td>
-                          {(fase.meses || Array(12).fill(false)).map((activo, mIdx) => (
-                            <td key={mIdx} style={{ padding: "8px", background: activo ? "rgba(34, 197, 94, 0.25)" : "transparent" }}>
-                              {activo ? <span style={{ color: "#22c55e", fontWeight: "bold" }}>✔</span> : <span style={{ color: "#475569" }}>-</span>}
+                        </tr>
+                        <tr style={{ borderBottom: "1px solid #334155" }}>
+                          <td style={{ padding: "8px", background: "#0f172a", fontWeight: "bold" }}>Necesidad de Mejora</td>
+                          <td style={{ padding: "8px" }}>
+                            <div><strong>Estado Actual:</strong> {proyectoSeleccionado.resumenEjecutivo?.estadoActual || "N/A"}</div>
+                            <div><strong>Estado Deseado:</strong> {proyectoSeleccionado.resumenEjecutivo?.estadoDeseado || "N/A"}</div>
+                            <div><strong>Brecha (GAP):</strong> {proyectoSeleccionado.resumenEjecutivo?.brechaGap || "N/A"} | <strong>Sentido Óptimo:</strong> {proyectoSeleccionado.resumenEjecutivo?.sentidoOptimo || "Ascendente"}</div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "8px", background: "#0f172a", fontWeight: "bold" }}>Alcance</td>
+                          <td style={{ padding: "8px" }}>{proyectoSeleccionado.resumenEjecutivo?.alcance || "N/A"}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 3. CÉLULA DE TRABAJO */}
+                <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "20px", overflow: "hidden" }}>
+                  <div style={{ background: "#166534", color: "#fff", padding: "6px 10px", fontWeight: "bold", textAlign: "center" }}>
+                    Célula de Trabajo
+                  </div>
+                  <div style={{ padding: "10px", background: "#1e293b" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                      <tbody>
+                        <tr style={{ borderBottom: "1px solid #334155" }}>
+                          <td style={{ width: "160px", padding: "8px", fontWeight: "bold", color: "#fbbf24", background: "#0f172a" }}>Sponsor:</td>
+                          <td style={{ padding: "8px" }}>{proyectoSeleccionado.celula?.sponsor || "No asignado"}</td>
+                        </tr>
+                        <tr style={{ borderBottom: "1px solid #334155" }}>
+                          <td style={{ padding: "8px", fontWeight: "bold", color: "#38bdf8", background: "#0f172a" }}>Líder:</td>
+                          <td style={{ padding: "8px" }}>{proyectoSeleccionado.celula?.lider || "No asignado"}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "8px", fontWeight: "bold", color: "#cbd5e1", background: "#0f172a" }}>Equipo:</td>
+                          <td style={{ padding: "8px" }}>{proyectoSeleccionado.celula?.equipo || "No asignado"}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 4. PLAN DE TRABAJO - TABLA AJUSTADA A ANCHO 100% */}
+                <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "20px", overflow: "hidden" }}>
+                  <div style={{ background: "#166534", color: "#fff", padding: "6px 10px", fontWeight: "bold", textAlign: "center" }}>
+                    Plan de Trabajo - Alto Nivel
+                  </div>
+                  <div style={{ padding: "10px", background: "#1e293b" }}>
+                    <table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse", fontSize: "0.75rem", textAlign: "center" }}>
+                      <thead>
+                        <tr style={{ background: "#0f172a", color: "#38bdf8", borderBottom: "2px solid #334155" }}>
+                          <th style={{ padding: "6px 4px", textAlign: "left", width: "22%" }}>Etapa / Fase</th>
+                          {Array.from({ length: 12 }, (_, i) => (
+                            <th key={i} style={{ padding: "6px 2px", width: "6.5%" }}>M{i + 1}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {planTrabajo.map((fase, fIdx) => (
+                          <tr key={fIdx} style={{ borderBottom: "1px solid #334155" }}>
+                            <td style={{ padding: "6px 4px", textAlign: "left", fontWeight: "bold", background: "#0f172a", color: "#f8fafc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {fase.nombre || fase.placeholder || `Fase ${fIdx + 1}`}
+                            </td>
+                            {(fase.meses || Array(12).fill(false)).map((activo, mIdx) => (
+                              <td key={mIdx} style={{ padding: "6px 2px", background: activo ? "rgba(34, 197, 94, 0.25)" : "transparent" }}>
+                                {activo ? <span style={{ color: "#22c55e", fontWeight: "bold" }}>✔</span> : <span style={{ color: "#475569" }}>-</span>}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 5. FLUJO DE CAJA - TABLA AJUSTADA CON COLUMNAS M1-M12 VISIBLES EN PDF */}
+                <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "20px", overflow: "hidden" }}>
+                  <div style={{ background: "#166534", color: "#fff", padding: "6px 10px", fontWeight: "bold", textAlign: "center" }}>
+                    Flujo de Caja
+                  </div>
+                  <div style={{ padding: "10px", background: "#1e293b" }}>
+                    <table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse", fontSize: "0.68rem", textAlign: "right" }}>
+                      <thead>
+                        <tr style={{ background: "#0f172a", color: "#38bdf8", borderBottom: "2px solid #334155" }}>
+                          <th style={{ padding: "6px 4px", textAlign: "left", width: "22%" }}>(-) Egresos (+) Ingresos (=) Resultado</th>
+                          {Array.from({ length: 12 }, (_, i) => (
+                            <th key={i} style={{ padding: "6px 2px", width: "6.5%", textAlign: "center" }}>M{i + 1}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style={{ borderBottom: "1px solid #334155" }}>
+                          <td style={{ padding: "6px 4px", textAlign: "left", background: "#0f172a", fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>(-) Costo de Operación (Opex)</td>
+                          {flujo.opex.map((val, idx) => (
+                            <td key={idx} style={{ padding: "6px 2px" }}>{Number(val || 0).toLocaleString()}</td>
+                          ))}
+                        </tr>
+                        <tr style={{ borderBottom: "1px solid #334155" }}>
+                          <td style={{ padding: "6px 4px", textAlign: "left", background: "#0f172a", fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>(+) Retorno del Negocio</td>
+                          {flujo.retorno.map((val, idx) => (
+                            <td key={idx} style={{ padding: "6px 2px" }}>{Number(val || 0).toLocaleString()}</td>
+                          ))}
+                        </tr>
+                        <tr style={{ borderBottom: "1px solid #334155", background: "#0f172a" }}>
+                          <td style={{ padding: "6px 4px", textAlign: "left", fontWeight: "bold", color: "#38bdf8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>(=) Flujo Operativo Neto</td>
+                          {flujo.flujoOpNeto.map((val, idx) => (
+                            <td key={idx} style={{ padding: "6px 2px", fontWeight: "bold", color: val >= 0 ? "#4ade80" : "#ef4444" }}>
+                              ${val.toLocaleString()}
                             </td>
                           ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                        <tr style={{ borderBottom: "1px solid #334155" }}>
+                          <td style={{ padding: "6px 4px", textAlign: "left", background: "#0f172a", fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>(-) Inversión Inicial (Capex)</td>
+                          {flujo.capex.map((val, idx) => (
+                            <td key={idx} style={{ padding: "6px 2px" }}>{Number(val || 0).toLocaleString()}</td>
+                          ))}
+                        </tr>
+                        <tr style={{ background: "#0f172a" }}>
+                          <td style={{ padding: "6px 4px", textAlign: "left", fontWeight: "bold", color: "#fde047", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>(=) Beneficio Neto Acumulado</td>
+                          {flujo.beneficioAcum.map((val, idx) => (
+                            <td key={idx} style={{ padding: "6px 2px", fontWeight: "bold", color: val >= 0 ? "#22c55e" : "#f87171" }}>
+                              ${val.toLocaleString()}
+                            </td>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
 
-              {/* 5. FLUJO DE CAJA MES A MES (M1 - M12) */}
-              <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "25px", overflow: "hidden" }}>
-                <div style={{ background: "#166534", color: "#fff", padding: "8px 12px", fontWeight: "bold", textAlign: "center" }}>
-                  Flujo de Caja
-                </div>
-                <div style={{ padding: "15px", background: "#1e293b", overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem", textAlign: "right" }}>
-                    <thead>
-                      <tr style={{ background: "#0f172a", color: "#38bdf8", borderBottom: "2px solid #334155" }}>
-                        <th style={{ padding: "8px", textAlign: "left", width: "220px" }}>(-) Egresos (+) Ingresos (=) Resultado</th>
-                        {Array.from({ length: 12 }, (_, i) => (
-                          <th key={i} style={{ padding: "8px", minWidth: "55px" }}>M{i + 1}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr style={{ borderBottom: "1px solid #334155" }}>
-                        <td style={{ padding: "8px", textAlign: "left", background: "#0f172a", fontWeight: "bold" }}>(-) Costo de Operación (Opex)</td>
-                        {flujo.opex.map((val, idx) => (
-                          <td key={idx} style={{ padding: "8px" }}>{Number(val || 0).toLocaleString()}</td>
-                        ))}
-                      </tr>
-                      <tr style={{ borderBottom: "1px solid #334155" }}>
-                        <td style={{ padding: "8px", textAlign: "left", background: "#0f172a", fontWeight: "bold" }}>(+) Retorno del Negocio</td>
-                        {flujo.retorno.map((val, idx) => (
-                          <td key={idx} style={{ padding: "8px" }}>{Number(val || 0).toLocaleString()}</td>
-                        ))}
-                      </tr>
-                      <tr style={{ borderBottom: "1px solid #334155", background: "#0f172a" }}>
-                        <td style={{ padding: "8px", textAlign: "left", fontWeight: "bold", color: "#38bdf8" }}>(=) Flujo Operativo Neto</td>
-                        {flujo.flujoOpNeto.map((val, idx) => (
-                          <td key={idx} style={{ padding: "8px", fontWeight: "bold", color: val >= 0 ? "#4ade80" : "#ef4444" }}>
-                            ${val.toLocaleString()}
+                {/* 6. TIEMPO DE RETORNO (ROI & PAYBACK) */}
+                <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "20px", overflow: "hidden" }}>
+                  <div style={{ background: "#166534", color: "#fff", padding: "6px 10px", fontWeight: "bold", textAlign: "center" }}>
+                    Tiempo de Retorno de Inversión (ROI & Payback)
+                  </div>
+                  <div style={{ padding: "10px", background: "#1e293b" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ width: "200px", padding: "8px", background: "#0f172a", fontWeight: "bold" }}>Retorno de Inversión (ROI):</td>
+                          <td style={{ padding: "8px", fontWeight: "bold", color: "#22c55e", fontSize: "1rem" }}>
+                            {proyectoSeleccionado.calculosFinancieros?.roi || "0.0"}%
                           </td>
-                        ))}
-                      </tr>
-                      <tr style={{ borderBottom: "1px solid #334155" }}>
-                        <td style={{ padding: "8px", textAlign: "left", background: "#0f172a", fontWeight: "bold" }}>(-) Inversión Inicial (Capex)</td>
-                        {flujo.capex.map((val, idx) => (
-                          <td key={idx} style={{ padding: "8px" }}>{Number(val || 0).toLocaleString()}</td>
-                        ))}
-                      </tr>
-                      <tr style={{ background: "#0f172a" }}>
-                        <td style={{ padding: "8px", textAlign: "left", fontWeight: "bold", color: "#fde047" }}>(=) Beneficio Neto Acumulado (Payback)</td>
-                        {flujo.beneficioAcum.map((val, idx) => (
-                          <td key={idx} style={{ padding: "8px", fontWeight: "bold", color: val >= 0 ? "#22c55e" : "#f87171" }}>
-                            ${val.toLocaleString()}
+                          <td style={{ width: "200px", padding: "8px", background: "#0f172a", fontWeight: "bold" }}>Periodo Recuperación (Payback):</td>
+                          <td style={{ padding: "8px", fontWeight: "bold", color: "#38bdf8", fontSize: "1rem" }}>
+                            {proyectoSeleccionado.calculosFinancieros?.paybackMes || "Mes 1"}
                           </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
 
-              {/* 6. TIEMPO DE RETORNO DE INVERSIÓN (ROI & PAYBACK) */}
-              <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "25px", overflow: "hidden" }}>
-                <div style={{ background: "#166534", color: "#fff", padding: "8px 12px", fontWeight: "bold", textAlign: "center" }}>
-                  Tiempo de Retorno de Inversión (ROI & Payback)
+                {/* 7. SOSTENIBILIDAD */}
+                <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "20px", overflow: "hidden" }}>
+                  <div style={{ background: "#166534", color: "#fff", padding: "6px 10px", fontWeight: "bold", textAlign: "center" }}>
+                    Aporte a la Estrategia y Sostenibilidad
+                  </div>
+                  <div style={{ padding: "10px", background: "#1e293b" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ width: "200px", padding: "8px", background: "#0f172a", fontWeight: "bold" }}>Índice de Sostenibilidad:</td>
+                          <td style={{ padding: "8px", color: "#cbd5e1" }}>
+                            {proyectoSeleccionado.indiceSostenibilidad || "Se debe realizar la medición del índice de sostenibilidad, como se indica en la matriz adjunta"}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div style={{ padding: "15px", background: "#1e293b" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
-                    <tbody>
-                      <tr>
-                        <td style={{ width: "220px", padding: "10px", background: "#0f172a", fontWeight: "bold" }}>Retorno de Inversión (ROI):</td>
-                        <td style={{ padding: "10px", fontWeight: "bold", color: "#22c55e", fontSize: "1.1rem" }}>
-                          {proyectoSeleccionado.calculosFinancieros?.roi || "0.0"}%
-                        </td>
-                        <td style={{ width: "220px", padding: "10px", background: "#0f172a", fontWeight: "bold" }}>Periodo Recuperación (Payback):</td>
-                        <td style={{ padding: "10px", fontWeight: "bold", color: "#38bdf8", fontSize: "1.1rem" }}>
-                          {proyectoSeleccionado.calculosFinancieros?.paybackMes || "Mes 1"}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
 
-              {/* 7. APORTE A LA ESTRATEGIA Y SOSTENIBILIDAD */}
-              <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "25px", overflow: "hidden" }}>
-                <div style={{ background: "#166534", color: "#fff", padding: "8px 12px", fontWeight: "bold", textAlign: "center" }}>
-                  Aporte a la Estrategia y Sostenibilidad
+                {/* 8. APROBACIONES */}
+                <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "20px", overflow: "hidden" }}>
+                  <div style={{ background: "#166534", color: "#fff", padding: "6px 10px", fontWeight: "bold", textAlign: "center" }}>
+                    Aprobaciones
+                  </div>
+                  <div style={{ padding: "10px", background: "#1e293b" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", textAlign: "center" }}>
+                      <thead>
+                        <tr style={{ background: "#0f172a", color: "#38bdf8" }}>
+                          <th style={{ padding: "8px", width: "50%", borderRight: "1px solid #334155" }}>Sponsor</th>
+                          <th style={{ padding: "8px", width: "50%" }}>Líder de Proyecto</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td style={{ padding: "12px", borderRight: "1px solid #334155", color: "#4ade80", fontWeight: "bold" }}>
+                            {proyectoSeleccionado.aprobaciones?.nombreSponsor || proyectoSeleccionado.celula?.sponsor || "Sin Firma"}
+                          </td>
+                          <td style={{ padding: "12px", color: "#4ade80", fontWeight: "bold" }}>
+                            {proyectoSeleccionado.aprobaciones?.nombreLider || proyectoSeleccionado.celula?.lider || "Sin Firma"}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div style={{ padding: "15px", background: "#1e293b" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
-                    <tbody>
-                      <tr>
-                        <td style={{ width: "220px", padding: "10px", background: "#0f172a", fontWeight: "bold" }}>Índice de Sostenibilidad:</td>
-                        <td style={{ padding: "10px", color: "#cbd5e1" }}>
-                          {proyectoSeleccionado.indiceSostenibilidad || "Se debe realizar la medición del índice de sostenibilidad, como se indica en la matriz adjunta"}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
 
-              {/* 8. APROBACIONES */}
-              <div style={{ border: "2px solid #15803d", borderRadius: "8px", marginBottom: "25px", overflow: "hidden" }}>
-                <div style={{ background: "#166534", color: "#fff", padding: "8px 12px", fontWeight: "bold", textAlign: "center" }}>
-                  Aprobaciones
-                </div>
-                <div style={{ padding: "15px", background: "#1e293b" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem", textAlign: "center" }}>
-                    <thead>
-                      <tr style={{ background: "#0f172a", color: "#38bdf8" }}>
-                        <th style={{ padding: "10px", width: "50%", borderRight: "1px solid #334155" }}>Sponsor</th>
-                        <th style={{ padding: "10px", width: "50%" }}>Líder de Proyecto</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td style={{ padding: "15px", borderRight: "1px solid #334155", color: "#4ade80", fontWeight: "bold" }}>
-                          {proyectoSeleccionado.aprobaciones?.nombreSponsor || proyectoSeleccionado.celula?.sponsor || "Sin Firma"}
-                        </td>
-                        <td style={{ padding: "15px", color: "#4ade80", fontWeight: "bold" }}>
-                          {proyectoSeleccionado.aprobaciones?.nombreLider || proyectoSeleccionado.celula?.lider || "Sin Firma"}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
               </div>
 
               {/* Botón de Cierre */}
               <button
                 onClick={() => setProyectoSeleccionado(null)}
-                style={{ width: "100%", padding: "12px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: "1rem" }}
+                style={{ width: "100%", padding: "12px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: "1rem", marginTop: "10px" }}
               >
                 Cerrar Ficha del Proyecto
               </button>
