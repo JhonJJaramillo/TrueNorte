@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import MonteCarloModule from "./components/MonteCarloModule";
+import DashboardModule from "./components/DashboardModule";
+import ProjectsModule from "./components/ProjectsModule";
 
 // Diccionario de definiciones para el tipo de problema
 const DESCRIPCIONES_PROBLEMA = {
@@ -578,34 +580,11 @@ export default function App() {
         </header>
 
         {activeTab === "dashboard" && (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
-              <div style={{ background: "#1e293b", padding: "1.2rem", borderRadius: "10px", border: "1px solid #334155" }}>
-                <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.85rem" }}>Proyectos Activos</p>
-                <h2 style={{ margin: "0.5rem 0 0 0", fontSize: "1.8rem", color: "#38bdf8" }}>3</h2>
-              </div>
-              <div style={{ background: "#1e293b", padding: "1.2rem", borderRadius: "10px", border: "1px solid #334155" }}>
-                <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.85rem" }}>Simulaciones Ejecutadas</p>
-                <h2 style={{ margin: "0.5rem 0 0 0", fontSize: "1.8rem", color: "#4ade80" }}>12</h2>
-              </div>
-              <div style={{ background: "#1e293b", padding: "1.2rem", borderRadius: "10px", border: "1px solid #334155" }}>
-                <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.85rem" }}>Análisis NLP Procesados</p>
-                <h2 style={{ margin: "0.5rem 0 0 0", fontSize: "1.8rem", color: "#a855f7" }}>8</h2>
-              </div>
-            </div>
-
-            <div style={{ background: "#1e293b", padding: "1.5rem", borderRadius: "10px", border: "1px solid #334155" }}>
-              <h3 style={{ margin: "0 0 0.5rem 0" }}>🟢 Estado del Sistema</h3>
-              <p style={{ color: "#94a3b8", margin: 0, fontSize: "0.9rem" }}>Conexión directa con MongoDB Atlas activa y autenticada.</p>
-            </div>
-          </div>
+          <DashboardModule onSelectProjectForSimulation={() => setActiveTab("simulacion")} />
         )}
 
         {activeTab === "proyectos" && (
-          <div style={{ background: "#1e293b", padding: "1.5rem", borderRadius: "10px", border: "1px solid #334155" }}>
-            <h3>📁 Módulo de Proyectos</h3>
-            <p style={{ color: "#94a3b8" }}>Módulo reservado para que los Líderes de Proyectos gestionen sus escenarios.</p>
-          </div>
+        <ProjectsModule onSelectProjectForSimulation={() => setActiveTab("simulacion")} />
         )}
 
         {/* ========================================================= */}
