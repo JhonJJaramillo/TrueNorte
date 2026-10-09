@@ -12,6 +12,7 @@ require("dotenv").config();
 // --- IMPORTAR RUTAS MODULARES ---
 const nlpRoutes = require("./routes/nlpRoutes");
 const projectRoutes = require("./routes/projectRoutes");
+const simulationRoutes = require("./routes/simulationRoutes");
 
 const app = express();
 app.use(cors());
@@ -217,5 +218,6 @@ app.put("/api/admin/users/:id/role", verificarToken, esAdmin, async (req, res) =
 // --- MONTAR RUTAS MODULARES ---
 app.use("/api/nlp", nlpRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/simulation", simulationRoutes);
 
 app.listen(PORT, () => console.log(`🚀 Servidor TrueNorte en ejecución en puerto ${PORT}`));

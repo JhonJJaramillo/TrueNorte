@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
+import MonteCarloModule from "./components/MonteCarloModule";
 
 // Diccionario de definiciones para el tipo de problema
 const DESCRIPCIONES_PROBLEMA = {
@@ -569,6 +570,7 @@ export default function App() {
             {activeTab === "nlp" && "Procesamiento de Lenguaje Natural (Editor NLP)"}
             {activeTab === "simulacion" && "Simulación de Riesgo Monte Carlo"}
             {activeTab === "usuarios" && "Gestión de Usuarios y Roles"}
+            {activeTab === "simulacion" && "Simulación de Riesgo Monte Carlo"}
           </h1>
           <p style={{ margin: "0.3rem 0 0 0", color: "#94a3b8", fontSize: "0.9rem" }}>
             Plataforma de Inteligencia Estratégica
@@ -1017,6 +1019,10 @@ export default function App() {
               </tbody>
             </table>
           </div>
+        )}
+        {/* MÓDULO MONTE CARLO INTEGRADO */}
+        {activeTab === "simulacion" && (
+          <MonteCarloModule />
         )}
       </main>
     </div>
